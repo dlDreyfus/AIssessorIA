@@ -1,0 +1,44 @@
+# =========================
+# 1. Credenciais e Variáveis de Ambiente (CRÍTICO)
+# =========================
+.env
+.env.*
+*.pem
+
+# =========================
+# 2. Arquivos de Cache do Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# =========================
+# 3. Ambientes Virtuais
+# =========================
+venv/
+env/
+.venv/
+Pipfile.lock
+
+# =========================
+# 4. Django e Banco de Dados Local
+# =========================
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Pastas de uploads de usuários e arquivos estáticos coletados
+/media/
+/staticfiles/
+/static/
+
+# =========================
+# 5. Arquivos de IDEs e Sistemas Operacionais
+# =========================
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
