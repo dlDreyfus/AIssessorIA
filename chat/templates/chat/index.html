@@ -173,7 +173,7 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function appendMessage(role, content) {
+        function appendMessage(role, content, animate = false) {
             const wrapper = document.createElement('div');
             wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
             
@@ -182,12 +182,27 @@
             
             const text = document.createElement('p');
             text.className = 'whitespace-pre-wrap';
-            text.textContent = content; // Previne ataques de XSS
             
             bubble.appendChild(text);
             wrapper.appendChild(bubble);
             chatContainer.appendChild(wrapper);
-            scrollToBottom();
+            
+            if (animate) {
+                let i = 0;
+                const speed = 30; // Velocidade em milissegundos (aumente para ficar mais lento)
+                function typeWriter() {
+                    if (i < content.length) {
+                        text.textContent += content.charAt(i);
+                        i++;
+                        scrollToBottom();
+                        setTimeout(typeWriter, speed);
+                    }
+                }
+                typeWriter();
+            } else {
+                text.textContent = content;
+                scrollToBottom();
+            }
         }
 
         // Extraímos a lógica para uma função independente para garantir a execução
@@ -235,13 +250,13 @@
                 typingIndicator.classList.add('hidden'); // Oculta o "Digitando..."
 
                 if (response.ok && data.status === 'success') {
-                    appendMessage('assistant', data.reply);
+                    appendMessage('assistant', data.reply, true);
                 } else {
-                    appendMessage('assistant', `⚠️ Erro no servidor: ${data.error || "Desconhecido"}`);
+                    appendMessage('assistant', `⚠️ Erro no servidor: ${data.error || "Desconhecido"}`, true);
                 }
             } catch (error) {
                 typingIndicator.classList.add('hidden');
-                appendMessage('assistant', `⚠️ Erro de rede: ${error.message}`);
+                appendMessage('assistant', `⚠️ Erro de rede: ${error.message}`, true);
             }
         }
 
