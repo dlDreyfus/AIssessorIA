@@ -103,6 +103,18 @@
             </div>
             {% endif %}
             <form id="chat-form" class="flex items-end gap-2 relative">
+                <!-- Display do nome do arquivo anexo -->
+                <div id="file-name-display" class="absolute -top-10 left-0 text-xs text-green-400 hidden bg-black border border-green-500 px-3 py-1 items-center gap-3">
+                    <span id="file-name-text" class="truncate max-w-[200px] md:max-w-md"></span>
+                    <button type="button" id="remove-file-btn" class="text-red-500 hover:text-red-400 font-bold" title="Remover anexo">X</button>
+                </div>
+                <!-- Botão de Upload e Input Oculto -->
+                <button type="button" onclick="document.getElementById('file-input').click()" class="bg-black border border-green-500 hover:bg-green-900 text-green-500 rounded-none px-4 py-3 font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" {% if not conversation %}disabled{% endif %} title="Anexar arquivo">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                    </svg>
+                </button>
+                <input type="file" id="file-input" class="hidden">
                 <textarea id="message-input" rows="1" placeholder="C:\> Digite seu comando..." class="w-full bg-black border border-green-500 text-green-500 rounded-none px-4 py-3 focus:ring-1 focus:ring-green-500 focus:outline-none resize-none max-h-32 overflow-y-auto placeholder-green-800" {% if not conversation %}disabled{% endif %}></textarea>
                 <button type="submit" class="bg-black border border-green-500 hover:bg-green-900 text-green-500 rounded-none px-5 py-3 font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed" {% if not conversation %}disabled{% endif %}>
                     Enviar
@@ -115,6 +127,10 @@
     <script>
         const chatForm = document.getElementById('chat-form');
         const messageInput = document.getElementById('message-input');
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const fileNameText = document.getElementById('file-name-text');
+        const removeFileBtn = document.getElementById('remove-file-btn');
         const chatContainer = document.getElementById('chat-container');
         const typingIndicator = document.getElementById('typing-indicator');
 
@@ -126,6 +142,23 @@
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
             if(this.value === '') this.style.height = 'auto';
+        });
+
+        // Gerenciar seleção e remoção de arquivo
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                fileNameText.textContent = 'Anexo: ' + this.files[0].name;
+                fileNameDisplay.classList.remove('hidden');
+                fileNameDisplay.classList.add('flex');
+            }
+        });
+
+        removeFileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            fileInput.value = '';
+            fileNameText.textContent = '';
+            fileNameDisplay.classList.add('hidden');
+            fileNameDisplay.classList.remove('flex');
         });
 
         // Enviar com o Enter (Shift+Enter pula linha)
@@ -167,24 +200,43 @@
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const message = messageInput.value.trim();
-            if (!message) return;
+            const file = fileInput.files[0];
+            
+            if (!message && !file) return;
 
             // 1. Otimização visual: limpa e redesenha a tela rapidamente
             messageInput.value = '';
             messageInput.style.height = 'auto';
-            appendMessage('user', message);
+            fileInput.value = '';
+            fileNameDisplay.classList.add('hidden');
+            fileNameDisplay.classList.remove('flex');
+            fileNameText.textContent = '';
             
+            let displayMessage = message;
+            if (file) {
+                displayMessage = displayMessage ? `${displayMessage}\n[Arquivo: ${file.name}]` : `[Arquivo: ${file.name}]`;
+            }
+            appendMessage('user', displayMessage);
+
             // 2. Mostra indicador de que a IA está "pensando"
             typingIndicator.classList.remove('hidden');
             scrollToBottom();
 
             // 3. Faz a requisição assíncrona para o Django
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: message })
-                });
+                let requestOptions = { method: 'POST' };
+                
+                if (file) {
+                    const formData = new FormData();
+                    formData.append('message', message);
+                    formData.append('file', file);
+                    requestOptions.body = formData;
+                } else {
+                    requestOptions.headers = { 'Content-Type': 'application/json' };
+                    requestOptions.body = JSON.stringify({ message: message });
+                }
+
+                const response = await fetch(apiUrl, requestOptions);
 
                 const data = await response.json();
                 typingIndicator.classList.add('hidden'); // Oculta o "Digitando..."
