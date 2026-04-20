@@ -55,12 +55,19 @@ def logout_view(request):
 def enviar_mensagem_api(request, conversation_id):
     """Endpoint de API para receber mensagens assincronamente via JavaScript Fetch"""
     try:
-        dados = json.loads(request.body)
-        mensagem_usuario = dados.get("message")
+        arquivo = None
+        
+        # Identifica se a requisição trouxe arquivos (FormData) ou se é um JSON normal
+        if request.content_type and request.content_type.startswith('multipart/form-data'):
+            mensagem_usuario = request.POST.get("message", "")
+            arquivo = request.FILES.get("file")
+        else:
+            dados = json.loads(request.body)
+            mensagem_usuario = dados.get("message", "")
 
         conversa = get_object_or_404(Conversation, id=conversation_id)
 
-        resposta_ia = processar_mensagem_chat(conversa, mensagem_usuario)
+        resposta_ia = processar_mensagem_chat(conversa, mensagem_usuario, arquivo)
 
         return JsonResponse({"reply": resposta_ia, "status": "success"})
     except Exception as e:
