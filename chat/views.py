@@ -56,13 +56,17 @@ def enviar_mensagem_api(request, conversation_id):
     """Endpoint de API para receber mensagens assincronamente via JavaScript Fetch"""
     try:
         arquivo = None
+        content_type = request.META.get('CONTENT_TYPE', '')
         
         # Identifica se a requisição trouxe arquivos (FormData) ou se é um JSON normal
-        if request.content_type and request.content_type.startswith('multipart/form-data'):
+        if content_type.startswith('multipart/form-data'):
             mensagem_usuario = request.POST.get("message", "")
             arquivo = request.FILES.get("file")
         else:
-            dados = json.loads(request.body)
+            try:
+                dados = json.loads(request.body) if request.body else {}
+            except json.JSONDecodeError:
+                dados = {}
             mensagem_usuario = dados.get("message", "")
 
         conversa = get_object_or_404(Conversation, id=conversation_id)

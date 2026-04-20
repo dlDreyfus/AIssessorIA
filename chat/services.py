@@ -44,23 +44,10 @@ def processar_mensagem_chat(conversation, user_content, arquivo=None):
     # Isso é essencial para o ChatGPT "lembrar" do que foi dito antes
     historico_mensagens = conversation.messages.all().order_by("created_at")
 
-    # 3. Formata as mensagens para o padrão exigido pela API da OpenAI
-    mensagens_api = [
-        {"role": "system", "content": "Você é um assistente prestativo e inteligente."}
-    ]
-    for msg in historico_mensagens:
-        mensagens_api.append({"role": msg.role, "content": msg.content})
+    # 3. Define a resposta padrão temporária (App em desenvolvimento)
+    conteudo_assistente = "Este aplicativo ainda está em desenvolvimento"
 
-    # 4. Faz a requisição para a OpenAI
-    resposta = client.chat.completions.create(
-        model="gpt-3.5-turbo",  # Você pode mudar para gpt-4 se preferir
-        messages=mensagens_api,
-        temperature=0.7,
-    )
-
-    conteudo_assistente = resposta.choices[0].message.content
-
-    # 5. Salva a resposta do assistente no banco
+    # 4. Salva a resposta do assistente no banco
     Message.objects.create(
         conversation=conversation, role="assistant", content=conteudo_assistente
     )

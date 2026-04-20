@@ -161,13 +161,6 @@
             fileNameDisplay.classList.remove('flex');
         });
 
-        // Enviar com o Enter (Shift+Enter pula linha)
-        messageInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                chatForm.dispatchEvent(new Event('submit'));
-            }
-        });
 
         // Função para os botões de ações rápidas
         function setQuickMessage(text) {
@@ -197,8 +190,8 @@
             scrollToBottom();
         }
 
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Extraímos a lógica para uma função independente para garantir a execução
+        async function processarEnvio() {
             const message = messageInput.value.trim();
             const file = fileInput.files[0];
             
@@ -244,11 +237,25 @@
                 if (response.ok && data.status === 'success') {
                     appendMessage('assistant', data.reply);
                 } else {
-                    appendMessage('assistant', "⚠️ Desculpe, ocorreu um erro ao processar sua mensagem.");
+                    appendMessage('assistant', `⚠️ Erro no servidor: ${data.error || "Desconhecido"}`);
                 }
             } catch (error) {
                 typingIndicator.classList.add('hidden');
-                appendMessage('assistant', "⚠️ Erro de rede. Verifique sua conexão com a internet.");
+                appendMessage('assistant', `⚠️ Erro de rede: ${error.message}`);
+            }
+        }
+
+        // Intercepta o clique do botão "Enviar"
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            processarEnvio();
+        });
+        
+        // Intercepta a tecla "Enter" com segurança
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                processarEnvio();
             }
         });
 
