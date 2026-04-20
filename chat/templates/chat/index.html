@@ -7,9 +7,13 @@
     <!-- Importando Tailwind CSS via CDN para estilização rápida e moderna -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Customização da barra de rolagem parecida com a do ChatGPT */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        /* Customização da barra de rolagem para o tema Terminal (funciona em todos os navegadores) */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #22c55e #051505;
+        }
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: #051505; border-left: 1px solid #15803d; }
         ::-webkit-scrollbar-thumb { background: #22c55e; border-radius: 0px; }
         ::-webkit-scrollbar-thumb:hover { background: #16a34a; }
         
@@ -320,6 +324,10 @@
                 <div>
                     <label class="block mb-1 text-sm">> Nova Senha:</label>
                     <input type="password" name="password" required class="w-full bg-black border border-green-500 text-green-500 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500 shadow-[inset_0_0_8px_rgba(34,197,94,0.1)] transition-shadow">
+                </div>
+                <div>
+                    <label class="block mb-1 text-sm">> Repetir Nova Senha:</label>
+                    <input type="password" name="password_confirm" required class="w-full bg-black border border-green-500 text-green-500 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500 shadow-[inset_0_0_8px_rgba(34,197,94,0.1)] transition-shadow">
                 </div>
                 <button type="submit" class="w-full border border-green-500 py-2 hover:bg-green-900 font-bold mt-4 transition-all shadow-[4px_4px_0_0_#15803d] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]">> CRIAR E EXECUTAR</button>
             </form>

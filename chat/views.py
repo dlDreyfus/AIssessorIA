@@ -37,7 +37,10 @@ def login_view(request):
 def register_view(request):
     u = request.POST.get('username')
     p = request.POST.get('password')
-    if User.objects.filter(username=u).exists():
+    p_confirm = request.POST.get('password_confirm')
+    if p != p_confirm:
+        messages.error(request, "Erro: As senhas não coincidem.")
+    elif User.objects.filter(username=u).exists():
         messages.error(request, "Erro: Este usuário já existe no sistema.")
     else:
         user = User.objects.create_user(username=u, password=p)
